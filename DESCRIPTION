@@ -11,5 +11,5 @@ Depends: R (>= 3.5.0)
 Encoding: UTF-8
 Imports: dplyr, purrr
 LazyData: true
-Collate:'conc_tsv.R' 'list_tsv.R'
+Collate:'conc_tsv.R' 'list_tsv.R' 'taxa_mx.R'
 RoxygenNote: 7.1.1
