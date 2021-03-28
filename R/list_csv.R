@@ -1,8 +1,8 @@
-#' @title list_tsv
+#' @title list_csv
 #' @description This is a function that suppresses log info
 #' #'
 #' @param flnm name of the file
-#' @importFrom readr read_tsv
+#' @importFrom readr read_csv
 #' @importFrom dplyr mutate
 #' @importFrom tidyr %>%
 #' @examples
@@ -13,10 +13,10 @@
 #' }
 #' # This is a function that suppresses log info
 #' @export
-list_tsv <- function(flnm) {
+list_csv <- function(flnm) {
   '%>%' <- tidyr::`%>%`
   return_namefile <-
-    readr::read_tsv(flnm) %>%
+    readr::read_csv(flnm) %>%
     dplyr::mutate(filename = flnm)
   return(return_namefile)
 }

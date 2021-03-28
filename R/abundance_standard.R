@@ -1,5 +1,4 @@
-
-#' @title taxa_mx
+#' @title abundance_standard
 #' @description This is a function that suppresses log info
 #' #'
 #' @param viral_df dataframe, gene_to_genome.csv, output from VContact2
@@ -15,7 +14,8 @@
 #' # This is a function that suppresses log info
 #' @export
 
-taxa_mx<-function(viral_df, taxa="Family", abuntype="relative"){
+
+abundance_standart<-function(viral_df, taxa="Family", abuntype="relative"){
   biomes<-unique(viral_df$Biome)
   number_biomes<-length(biomes)
 
