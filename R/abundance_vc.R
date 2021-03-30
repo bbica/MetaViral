@@ -1,10 +1,11 @@
 #' @title abundance_vc
-#' @description This is a function that suppresses log info
+#' @description Creates a abundance matrix from the genome_by_genome_overview.csv files outputed by VCONTACT2
 #' @param viral_vc dataframe, gene_to_genome.csv, output from VContact2
 #' @param taxa taxon selected by the user among the following: "Genome","Order","Family","Genus". Default set to "Family"
 #' @param abuntype abundance to construct the matrix. "relative" or "absolute"; default set to "relative"
 #' @importFrom purrr as_vector
 #' @importFrom dplyr add_count group_by mutate select
+#' @importFrom rlang is_empty
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))
@@ -13,35 +14,35 @@
 #' }
 #' # This is a function that suppresses log info
 #' @export
-abundance_vc<-function(viral_vc, taxa="Family", abuntype="relative"){
-#Majority rules
-viral_test1<-viral_vc%>%
-  # add a column n with count by categories
-  add_count(VC.Subcluster, Genus, Biome, Category) %>%
-  # select max or first occurrence
-  group_by(VC.Subcluster) %>%
-  # keep only first TRUE
-  mutate(VC_Genus = Genus[n == max(n)][1]) %>%
-  # do not keep temp var
-  select(-n)
+abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
+  #Majority rules
+  viral_test1<-viral_vc%>%
+    # add a column n with count by categories
+    add_count(VC.Subcluster, Genus, Biome, Category) %>%
+    # select max or first occurrence
+    group_by(VC.Subcluster) %>%
+    # keep only first TRUE
+    mutate(VC_Genus = Genus[n == max(n)][1]) %>%
+    # do not keep temp var
+    select(-n)
 
-viral_test1<-viral_test1 %>%
-  add_count(VC.Subcluster, Family, Biome, Category) %>%
-  group_by(VC.Subcluster) %>%
-  mutate(VC_Family = Family[n == max(n)][1]) %>%
-  select(-n)
+  viral_test1<-viral_test1 %>%
+    add_count(VC.Subcluster, Family, Biome, Category) %>%
+    group_by(VC.Subcluster) %>%
+    mutate(VC_Family = Family[n == max(n)][1]) %>%
+    select(-n)
 
-viral_test1<-viral_test1 %>%
-  add_count(VC.Subcluster, Genome, Biome, Category) %>%
-  group_by(VC.Subcluster) %>%
-  mutate(VC_Genome = Genome[n == max(n)][1]) %>%
-  select(-n)
+  viral_test1<-viral_test1 %>%
+    add_count(VC.Subcluster, Genome, Biome, Category) %>%
+    group_by(VC.Subcluster) %>%
+    mutate(VC_Genome = Genome[n == max(n)][1]) %>%
+    select(-n)
 
-viral_test1<-viral_test1 %>%
-  add_count(VC.Subcluster, Order, Biome, Category) %>%
-  group_by(VC.Subcluster) %>%
-  mutate(VC_Order = Order[n == max(n)][1]) %>%
-  select(-n)
+  viral_test1<-viral_test1 %>%
+    add_count(VC.Subcluster, Order, Biome, Category) %>%
+    group_by(VC.Subcluster) %>%
+    mutate(VC_Order = Order[n == max(n)][1]) %>%
+    select(-n)
 
 
   biomas<-unique(viral_vc$Biome)
@@ -81,7 +82,7 @@ viral_test1<-viral_test1 %>%
   }
   vec_biomas_mx<-c()
   for (i in 1:length(biomas)){
-   assign(paste0(biomas[i],"_data"),vec2[which(vec_biomas==biomas[i]),])
+    assign(paste0(biomas[i],"_data"),vec2[which(vec_biomas==biomas[i]),])
     vec_biomas_mx<-c(vec_biomas_mx, paste0(biomas[i],"_data"))
   }
   vec4<-list()
@@ -104,6 +105,33 @@ viral_test1<-viral_test1 %>%
     }
     vec4[[i]]<-vec3
   }
-names(vec4)<-biomas
-return(vec4)
+  names(vec4)<-biomas
+  if (output_type=="list"){
+    return(vec4)
+
+  }else{
+    vecall<-c()
+
+    for (i in 1:length(vec4)){
+      vectmp<-vec4[[i]][,1]
+      vecall<-c(vecall,vectmp)
+    }
+    vecuniquetaxa<-unique(vecall)
+    matrix_final<-matrix(data=NA, nrow=length(biomas), ncol=length(vecuniquetaxa))
+    rownames(matrix_final)<-biomas
+    colnames(matrix_final)<-vecuniquetaxa
+    for (i in 1:length(biomas)){
+      for (j in 1:length(vecuniquetaxa)){
+        corresp<-which(vec4[[i]][,1]==vecuniquetaxa[j])
+        insert_in_matrix<-c()
+        if (rlang::is_empty(corresp)==TRUE){
+          insert_in_matrix<-0
+        }else{
+          insert_in_matrix<-as.numeric(vec4[[i]][corresp,2])
+        }
+        matrix_final[i,j]<-insert_in_matrix
+      }
+    }
+    return(matrix_final)
+  }#end else
 }#end of function
