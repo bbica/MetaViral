@@ -40,9 +40,31 @@ viral_vc<-transform(viral_vc, VC2 = as.numeric(VC2))
 viral_vc <- viral_vc[order(viral_vc$VC, viral_vc$VC2, decreasing = FALSE), ]
 
 #abundance_vc function
-falta_mx<-abundance_vc(viral_vc=viral_vc, taxa = "Genome")
+falta_mx<-abundance_vc(viral_vc=viral_vc, abuntype = "absolute", taxa = "Genome")
+
+falta_mx["14_230"]
+
+mx<-do.call(rbind, falta_mx[1])
+mx<-t(simplify2array(falta_mx))
+t(sapply(a, mx))
+mx<-matrix(unlist(falta_mx), byrow=TRUE, nrow=length(falta_mx) )
+Matrix_x <- matrix(unlist(falta_mx), ncol = 7, byrow = TRUE)
+library(reshape2)
+melt<-melt(falta_mx)
+cbind(rep(seq_along(falta_mx), times=sapply(falta_mx, length)), unlist(falta_mx))
 
 
+output <- matrix(unlist(falta_mx[[1]][,1]), ncol = 2, byrow = FALSE)
+
+output=NULL
+for(i in 1:length(falta_mx)) {
+  output=rbind(output,
+               matrix(unlist(falta_mx[[i]]),ncol=2 ,byrow=FALSE))
+}
+
+output<-matrix(unlist(falta_mx[[5]]),ncol=2,byrow=F)
+
+z_mat <- matrix(unlist(falta_mx), nrow = length(falta_mx), byrow = TRUE)
 
 #DRAMv
 

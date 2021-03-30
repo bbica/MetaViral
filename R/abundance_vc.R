@@ -21,38 +21,26 @@ viral_test1<-viral_vc%>%
   # select max or first occurrence
   group_by(VC.Subcluster) %>%
   # keep only first TRUE
-  mutate(Majority_g = Genus[n == max(n)][1]) %>%
+  mutate(VC_Genus = Genus[n == max(n)][1]) %>%
   # do not keep temp var
   select(-n)
 
 viral_test1<-viral_test1 %>%
-  # add a column n with count by categories
   add_count(VC.Subcluster, Family, Biome, Category) %>%
-  # select max or first occurrence
   group_by(VC.Subcluster) %>%
-  # keep only first TRUE
-  mutate(Majority_f = Family[n == max(n)][1]) %>%
-  # do not keep temp var
+  mutate(VC_Family = Family[n == max(n)][1]) %>%
   select(-n)
 
 viral_test1<-viral_test1 %>%
-  # add a column n with count by categories
   add_count(VC.Subcluster, Genome, Biome, Category) %>%
-  # select max or first occurrence
   group_by(VC.Subcluster) %>%
-  # keep only first TRUE
-  mutate(Majority_sp = Genome[n == max(n)][1]) %>%
-  # do not keep temp var
+  mutate(VC_Genome = Genome[n == max(n)][1]) %>%
   select(-n)
 
 viral_test1<-viral_test1 %>%
-  # add a column n with count by categories
   add_count(VC.Subcluster, Order, Biome, Category) %>%
-  # select max or first occurrence
   group_by(VC.Subcluster) %>%
-  # keep only first TRUE
-  mutate(Majority_o = Order[n == max(n)][1]) %>%
-  # do not keep temp var
+  mutate(VC_Order = Order[n == max(n)][1]) %>%
   select(-n)
 
 
@@ -67,15 +55,15 @@ viral_test1<-viral_test1 %>%
         vector_id<-paste0(biomas[i], "-", categories[j], "-", viralclusters[k])
         occurencies<-length(rowselected)
         if (taxa=="Family"){
-          Majority_taxa<-"Majority_f"
+          Majority_taxa<-"VC_Family"
         }else if (taxa=="Order"){
-          Majority_taxa<-"Majority_o"
+          Majority_taxa<-"VC_Order"
         }else if (taxa=="Genus"){
-          Majority_taxa<-"Majority_g"
+          Majority_taxa<-"VC_Genus"
         }else if (taxa=="Genome"){
-          Majority_taxa<-"Majority_sp"
+          Majority_taxa<-"VC_Genome"
         }else {
-          Majority_taxa<-"Majority_f"
+          Majority_taxa<-"VC_Family"
           print("Family selected as the taxa")
         }
 
