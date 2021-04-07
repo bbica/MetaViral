@@ -3,45 +3,26 @@ library(MetaViral)
 # Clear R's brain
 rm(list = ls())
 
+#VCONTACT2
+#set working directory to where the genome_by_genome_overview.csv files are located
+wd_dir_exe<-"C:/Users/bbica/Desktop/MetaViral/inst/Example_Data"
+setwd(wd_dir_exe)
 
-#vcontact2
 wd_genomes<-"~/Bernardo/ALL DATA 2020/Vcontact2/genome_by_genome/"
 setwd(wd_genomes)
 
-viral_genome<-import_files("~/Bernardo/ALL DATA 2020/Vcontact2/genome_by_genome/", filetype = "csv")
+#Import with import_files function that calls the list_csv function (filetype="csv")
+viral_genome<-import_files(wd_genomes, filetype = "csv")
 
 #Cleaning...
-viral_genome <- tidyr::separate(viral_genome, col=filename, into=c("Biome", "Category"), sep="-(?=[^-])", extra = "merge")
-viral_genome <- tidyr::separate(viral_genome, col=Biome, into=c("junk", "Biome"), sep="(?=[A-z0-9])", extra = "merge")
-viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("junk", "Category"), sep="(?=[0-9])", remove = FALSE)
-viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("Category", "junk"), sep="[-]", extra = "merge")
-viral_genome$junk <- NULL
-viral_genome<-viral_genome[,-1]
+viral_vc<-cleaning(viral_genome, output_from="vcontact2")
 
+#Creation of a abundance matrix with abundance_vc function
+VC_mx_abs<-MetaViral::abundance_vc(viral_vc=viral_vc, abuntype = "absolute", taxa = "Genome",output_type = "matrix" )
+VC_mx_rel<-MetaViral::abundance_vc(viral_vc=viral_vc, abuntype = "relative", taxa = "Genome",output_type = "matrix" )
 
-viral_genome_mx<-abundance_standart(viral_genome)
-
-#VC
-
-#sort and group by each VC
-viral_vc<-viral_genome %>%
-  group_by(`VC Subcluster`) %>%
-  arrange(Genome, Family, Order, Genus, Biome, Category)
-
-viral_vc<-viral_vc[!is.na(viral_vc$VC), ]
-
-viral_vc <- tidyr::separate(viral_vc, col=VC, into=c("VC", "VC2"), sep="\\D", extra = "merge")
-
-viral_vc<-transform(viral_vc, VC = as.numeric(VC))
-viral_vc<-transform(viral_vc, VC2 = as.numeric(VC2))
-
-#viral_sorted <- viral_vc[order(as.integer(viral_vc$VC),decreasing = FALSE), ]
-
-viral_vc <- viral_vc[order(viral_vc$VC, viral_vc$VC2, decreasing = FALSE), ]
-
-#abundance_vc function
-falta_mx<-MetaViral::abundance_vc(viral_vc=viral_vc, abuntype = "relative", taxa = "Genome",output_type = "matrix" )
-
+#bio_statistics function
+VC_stats<-bio_statistics(VC_mx_abs)
 
 
 #DRAMv

@@ -50,7 +50,7 @@ cleaning<-function(data, sepby="-(?=[^-])", fullclean=TRUE, output_from="vcontac
 
   }else if (output_from=="DRAMv") {
 
-    return(viral_genome)
+    return(viral_annotations)
 
   }else {
     warning("output_from must be vcontact2 or DRAMv")
