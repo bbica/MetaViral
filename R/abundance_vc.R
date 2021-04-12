@@ -25,25 +25,25 @@ abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="r
     # keep only first TRUE
     mutate(VC_Genus = Genus[n == max(n)][1]) %>%
     # do not keep temp var
-    select(-n)
+    dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
     add_count(VC.Subcluster, Family, Biome, Category) %>%
     group_by(VC.Subcluster) %>%
     mutate(VC_Family = Family[n == max(n)][1]) %>%
-    select(-n)
+    dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
     add_count(VC.Subcluster, Genome, Biome, Category) %>%
     group_by(VC.Subcluster) %>%
     mutate(VC_Genome = Genome[n == max(n)][1]) %>%
-    select(-n)
+    dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
     add_count(VC.Subcluster, Order, Biome, Category) %>%
     group_by(VC.Subcluster) %>%
     mutate(VC_Order = Order[n == max(n)][1]) %>%
-    select(-n)
+    dplyr::select(-n)
 
 
   biomas<-unique(viral_vc$Biome)
