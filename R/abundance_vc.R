@@ -19,30 +19,30 @@ abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="r
   #Majority rules
   viral_test1<-viral_vc%>%
     # add a column n with count by categories
-    add_count(VC.Subcluster, Genus, Biome, Category) %>%
+    dplyr::add_count(VC.Subcluster, Genus, Biome, Category) %>%
     # select max or first occurrence
-    group_by(VC.Subcluster) %>%
+    dplyr::group_by(VC.Subcluster) %>%
     # keep only first TRUE
-    mutate(VC_Genus = Genus[n == max(n)][1]) %>%
+    dplyr::mutate(VC_Genus = Genus[n == max(n)][1]) %>%
     # do not keep temp var
     dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
-    add_count(VC.Subcluster, Family, Biome, Category) %>%
-    group_by(VC.Subcluster) %>%
-    mutate(VC_Family = Family[n == max(n)][1]) %>%
+    dplyr::add_count(VC.Subcluster, Family, Biome, Category) %>%
+    dplyr::group_by(VC.Subcluster) %>%
+    dplyr::mutate(VC_Family = Family[n == max(n)][1]) %>%
     dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
-    add_count(VC.Subcluster, Genome, Biome, Category) %>%
-    group_by(VC.Subcluster) %>%
-    mutate(VC_Genome = Genome[n == max(n)][1]) %>%
+    dplyr::add_count(VC.Subcluster, Genome, Biome, Category) %>%
+    dplyr::group_by(VC.Subcluster) %>%
+    dplyr::mutate(VC_Genome = Genome[n == max(n)][1]) %>%
     dplyr::select(-n)
 
   viral_test1<-viral_test1 %>%
-    add_count(VC.Subcluster, Order, Biome, Category) %>%
-    group_by(VC.Subcluster) %>%
-    mutate(VC_Order = Order[n == max(n)][1]) %>%
+    dplyr::add_count(VC.Subcluster, Order, Biome, Category) %>%
+    dplyr::group_by(VC.Subcluster) %>%
+    dplyr::mutate(VC_Order = Order[n == max(n)][1]) %>%
     dplyr::select(-n)
 
 
