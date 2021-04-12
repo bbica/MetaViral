@@ -7,6 +7,7 @@
 #' @param output_from
 #' @param ...
 #' @import dplyr
+#' @importFrom tidyr %>%
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))
