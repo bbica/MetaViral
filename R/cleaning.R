@@ -6,8 +6,7 @@
 #' @param fullclean
 #' @param output_from
 #' @param ...
-#' @importFrom tidyr separate
-#' @importFrom dplyr group_by arrange
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))
@@ -17,6 +16,7 @@
 #' # This is a function that suppresses log info
 #' @export
 cleaning<-function(data, sepby="-(?=[^-])", fullclean=TRUE, output_from="vcontact2", ...){
+  '%>%' <- tidyr::`%>%`
   if (fullclean==TRUE){
     viral_genome <- tidyr::separate(data, col=filename, into=c("Biome", "Category"), sep=sepby, extra = "merge")
     viral_genome <- tidyr::separate(viral_genome, col=Biome, into=c("junk", "Biome"), sep="(?=[A-z0-9])", extra = "merge")

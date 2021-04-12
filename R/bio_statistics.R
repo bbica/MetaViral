@@ -2,7 +2,7 @@
 #' @description performs multiple diversity indexes
 #' #'
 #' @param abundance_mx
-#' @importFrom vegan diversity
+#' @import vegan
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))

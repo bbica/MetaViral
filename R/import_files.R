@@ -3,7 +3,7 @@
 #' #'
 #' @param path path where the files are present
 #' @param filetype example: "tsv" "csv". Default set to tsv
-#' @importFrom tidyr %>%
+#' @import dplyr
 #' @importFrom purrr map_df
 #' @examples
 #' \dontrun{

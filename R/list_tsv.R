@@ -3,8 +3,7 @@
 #' #'
 #' @param flnm name of the file
 #' @importFrom readr read_tsv
-#' @importFrom dplyr mutate
-#' @importFrom tidyr %>%
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))

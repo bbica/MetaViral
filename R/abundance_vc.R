@@ -4,7 +4,7 @@
 #' @param taxa taxon selected by the user among the following: "Genome","Order","Family","Genus". Default set to "Family"
 #' @param abuntype abundance to construct the matrix. "relative" or "absolute"; default set to "relative"
 #' @importFrom purrr as_vector
-#' @importFrom dplyr add_count group_by mutate select
+#' @import dplyr
 #' @importFrom rlang is_empty
 #' @examples
 #' \dontrun{
@@ -15,6 +15,7 @@
 #' # This is a function that suppresses log info
 #' @export
 abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
+  '%>%' <- tidyr::`%>%`
   #Majority rules
   viral_test1<-viral_vc%>%
     # add a column n with count by categories

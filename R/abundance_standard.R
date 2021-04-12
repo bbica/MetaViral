@@ -13,8 +13,6 @@
 #' }
 #' # This is a function that suppresses log info
 #' @export
-
-
 abundance_standart<-function(viral_df, taxa="Family", abuntype="relative"){
   biomes<-unique(viral_df$Biome)
   number_biomes<-length(biomes)
