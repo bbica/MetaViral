@@ -23,5 +23,6 @@ VC_stats<-bio_statistics(VC_mx_abs)
 
 #-
 #DRAMv
-viral_genome<-import_files(wd_example, filetype = "tsv")
-
+viral_annotations<-import_files(wd_example, filetype = "tsv")
+viral_annotations2<-cleaning(viral_annotations, output_from="DRAMv")
+viral_data<-import_files(wd_example, filetype = "tsv")

@@ -17,7 +17,7 @@
 abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
   '%>%' <- tidyr::`%>%`
   #Majority rules
-  viral_test1<-viral_vc%>%
+  viral_test1<-viral_vc %>%
     # add a column n with count by categories
     dplyr::add_count(VC.Subcluster, Genus, Biome, Category) %>%
     # select max or first occurrence
