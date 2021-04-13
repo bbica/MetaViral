@@ -64,7 +64,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
 
     #removes rows without any predictions
     DRAMv_with_sources3 <- DRAMv_with_sources2 %>%
-      dplyr::filter_at( dplyr::vars(kegg_hit,viral_function,pfam_hits,cazy_hits,vogdb_description,peptidase_hit),any_vars(!is.na(.)))
+      dplyr::filter_at( dplyr::vars(kegg_hit,viral_function,pfam_hits,cazy_hits,vogdb_description,peptidase_hit),dplyr::any_vars(!is.na(.)))
 
     #removes rows with NA in the amg_flags
     DRAMv_with_sources4 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
