@@ -50,11 +50,19 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
     DRAMv_with_sources2 <- DRAMv_with_sources%>%
       tidyr::separate(col=viral_hit, into=c("viral_function", "protein_and_vname"), sep="\\s", extra="merge")%>%
       tidyr::separate(col=protein_and_vname, into=c("viral_function", "viral_tax"), sep="(?=\\[)")%>% #separates the column by the fist  "["
-      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "kegg_hit2", "kegg_hit3", "kegg_hit4"), sep=";")%>%
+      #kegg
+      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "kegg_hit2"), sep=";")%>%
       tidyr::separate(col=kegg_hit, into=c("kegg_hit", "junk"), sep="(?=\\[)")%>%
+      #vogdb
       tidyr::separate(col=vogdb_description, into=c("vogdb_description", "junk"), sep=";")%>%
       tidyr::separate(col=vogdb_description, into=c("junk2", "vogdb_description"), sep="(?=\\s)", extra = "merge")%>%
-      tidyr::separate(col=pfam_hits, into=c("pfam_hits", "pfam_id"), sep="(?=\\[)")
+      #pfam
+      tidyr::separate(col=pfam_hits, into=c("pfam_hits", "pfam_id"), sep="(?=\\[)")%>%
+      #peptidase
+      tidyr::separate(col=peptidase_hit, into=c("junk", "peptidase_hit"), sep="-", extra = "merge")%>%
+      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?≥\\))", extra = "merge")%>%
+      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "peptidase_tax"), sep="(?=\\()", extra = "drop")%>%
+      tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")
 
     DRAMv_with_sources2$junk <- NULL
     DRAMv_with_sources2$junk2 <- NULL
@@ -68,7 +76,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
 
     #removes rows with NA in the amg_flags
     DRAMv_with_sources4 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
-    #filter for only auxiliary scores 4 and 5
+    #filter for only auxiliary scores inferior to 4
     DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<4)
     #filter out flags related with viral function
     unwanted_flags <- c("F", "T", "P", "A")
@@ -85,7 +93,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
   }else {
     warning("output_from must be vcontact2 or DRAMv")
   }
-}
+}#end of function
 
 
 

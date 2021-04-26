@@ -24,5 +24,9 @@ VC_stats<-bio_statistics(VC_mx_abs)
 #-
 #DRAMv
 viral_annotations<-import_files(wd_example, filetype = "tsv")
-viral_annotations2<-cleaning(viral_annotations, output_from="DRAMv")
+viral_annotations<-cleaning(viral_annotations, output_from="DRAMv")
+kegg<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "kegg")
+peptidase<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "peptidase")
+vog<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "vog")
+all_db<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "all")
 

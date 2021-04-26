@@ -9,7 +9,7 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
-Imports: dplyr, purrr, readr, tidyr, rlang, vegan
+Imports: dplyr, purrr, readr, tidyr, rlang, vegan, KEGGREST
 LazyData: true
-Collate:'import_files.R' 'list_tsv.R' 'abundance_standard.R' 'list_csv.R' 'cleaning.R' 'abundance_vc.R' 'bio_statistics.R'
+Collate:'import_files.R' 'list_tsv.R' 'abundance_standard.R' 'list_csv.R' 'cleaning.R' 'abundance_vc.R' 'bio_statistics.R' 'db_exploring.R'
 RoxygenNote: 7.1.1
