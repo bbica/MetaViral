@@ -20,7 +20,7 @@ VC_mx_rel<-MetaViral::abundance_vc(viral_vc=viral_vc, abuntype = "relative", tax
 
 #bio_statistics function
 VC_stats<-bio_statistics(VC_mx_abs)
-
+VC_stats<-bio_statistics(VC_mx_rel)
 #-
 #DRAMv
 viral_annotations<-import_files(wd_example, filetype = "tsv")
