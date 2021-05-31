@@ -1,5 +1,5 @@
 # MetaViral
-R package to deal with the output from VCONTACT2 and DRAM-v. 
+R package to help deal with the output from VCONTACT2 and DRAM-v. 
 
 
 
