@@ -7,9 +7,36 @@ library(tibble)
 
 ui <- shinyUI(
   fluidPage(
+    tags$head(
+      # Note the wrapping of the string in HTML()
+      tags$style(HTML("
+      @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
+      body {
+        background-color: lightgrey;
+        color: black;
+      }
+      h2 {
+        font-family: 'Rajdhani', sans-serif;
+      }
+      .shiny-input-container {
+        color: #474747;
+      }"))
+      ),
     shinyjs::useShinyjs(),
-    div(id="myapp" #adicionar coisas posteriormente para o header da app
-    ),#end of div
+    div(
+      id="myapp", #Start of header
+      shiny::titlePanel(title = div(
+        shiny::splitLayout(
+          cellWidths = NULL,
+          h2("MetaViral app", align = "left"),
+
+          div(
+            style = "position:absolute;top:1em; right:1em;",
+            a(img(height = 50, width = 50, src="logo.png"), href="https://github.com/bbica/MetaViral") ,
+        ))
+      ))
+
+     ),#end of div
 
     shiny::sidebarLayout(
       shiny::sidebarPanel(
