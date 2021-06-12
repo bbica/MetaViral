@@ -8,6 +8,8 @@ library(tibble)
 ui <- shinyUI(
   fluidPage(
     tags$head(
+
+
       # Note the wrapping of the string in HTML()
       tags$style(HTML("
       @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
@@ -50,16 +52,17 @@ ui <- shinyUI(
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
         br(),
-        shiny::actionButton(inputId = "dataset_clean", label = "Clean"),
+        shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
         br(),
         br(),
         hr(style = "border-color: black"),
         br(),
         shinyjs::hidden(shiny::radioButtons(inputId = "dataset_matrix", label = "Abundance type to generate", choices = c("absolute", "relative"))),
         shinyjs::hidden(shiny::selectInput(inputId = "taxa_selection", label = "Taxa to analyse", choices = c("Order", "Family", "Genus", "Genome"))),
-        shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Calculate", icon = icon("log-out", lib = "glyphicon"))),
+        shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Calculate", icon = icon("thumbnails-small", lib = "glyphicon"))),
         br(),
-        shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Calculate Biodiversity Indices")),
+        br(),
+        shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Determine Biodiversity Indices", icon = icon("stats-circle", lib="glyphicon"))),
         #shiny::selectizeInput(inputId = "database", label = "Database exploration",
                                 #choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"), multiple=T),
         br(),
