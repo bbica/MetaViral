@@ -3,9 +3,11 @@
 #' #'
 #' @param viral_data
 #' @param output_from
+#' @param remove_flags
 #' @param ...
 #' @import dplyr
 #' @importFrom gtools permutations
+#' @importFrom rlang is_empty
 #' @examples
 #' \dontrun{
 #' quiet(cat("test"))
@@ -14,7 +16,7 @@
 #' }
 #' # This is a function that suppresses log info
 #' @export
-cleaning<-function(viral_data, output_from="vcontact2", ...){
+cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T", "P", "A"),...){
   '%>%' <- tidyr::`%>%`
   if (output_from=="vcontact2"){
     viral_genome <- tidyr::separate(viral_data, col=filename, into=c("Biome", "Category"), sep="-(?=[^-])", extra = "merge")
@@ -79,12 +81,14 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
     #filter for only auxiliary scores inferior to 4
     DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<4)
     #filter out flags related with viral function
-    unwanted_flags <- c("F", "T", "P", "A")
+      if (rlang::is_empty(remove_flags)==TRUE){
 
-      for (i in 1:max(nchar(DRAMv_with_sources4$amg_flags))) {
-        prm<-gtools::permutations(n=4,r=i,v=unwanted_flags, repeats.allowed = TRUE)
-        prm<-apply(prm, 1, function(x) paste0(x, collapse=''))
-        DRAMv_with_sources4<-DRAMv_with_sources4[ ! DRAMv_with_sources4$amg_flags %in% prm, ]
+      }else{
+        for (i in 1:max(nchar(DRAMv_with_sources4$amg_flags))) {
+          prm<-gtools::permutations(n=length(remove_flags),r=i,v=remove_flags, repeats.allowed = TRUE)
+          prm<-apply(prm, 1, function(x) paste0(x, collapse=''))
+          DRAMv_with_sources4<-DRAMv_with_sources4[ ! DRAMv_with_sources4$amg_flags %in% prm, ]
+        }
       }
 
     viral_annotations<-DRAMv_with_sources4

@@ -24,9 +24,12 @@ VC_stats<-bio_statistics(VC_mx_rel)
 #-
 #DRAMv
 viral_annotations<-import_files(wd_example, filetype = "tsv")
-viral_annotations<-cleaning(viral_annotations, output_from="DRAMv")
-kegg<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "kegg")
+viral_annotations_c<-cleaning(viral_annotations, output_from="DRAMv", remove_flags=c("F", "T", "P", "A")) #with the default parameter for remove_flags;
+#remove_flags=c() translates to an cleaning without filtering in the amg_flags collumn, in the dramv dataset
+
+kegg<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "kegg") #this action uses the KEGGREST package, it will take a bit longer
 peptidase<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "peptidase")
 vog<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "vog")
 all_db<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "all")
+vog<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = )
 
