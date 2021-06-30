@@ -51,6 +51,7 @@ ui <- shinyUI(
         shiny::radioButtons(inputId = "dataset_type", label = "File type", choices = c("DRAM-v (tsv)", "vConTACT2 (csv)")),
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
+        shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         br(),
         shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
         br(),
@@ -123,7 +124,7 @@ server <- function(input, output, session) {
       typefile$df<-"csv"
     } else { #DRAM-v filetype
       typefile$df<-"tsv"
-
+      shinyjs::show("amg_flags")
     }
     x<<-input$dataset
     wd<<-file.path(normalizePath("~"), paste(unlist(x$path[-1]), collapse = .Platform$file.sep))
@@ -138,17 +139,24 @@ server <- function(input, output, session) {
    showNotification("Done")
    shinyjs::show("downloadRaw")
    shinyjs::show("downTypeRaw")
+
    printer$df<-data$df
 
   })#end observeEvente import
+
+  #if(typefile$df == "tsv"){
+  #shinyjs::show("amg_flags")
+  #}
 
   observeEvent(input$dataset_clean, { #button to clean data
     if ( typefile$df == "csv"){
       output_from<-"vcontact2"
     }else{
       output_from<-"DRAMv"
+
+
     }
-    data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from)
+    data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)
     output$imported_table<-DT::renderDataTable({
       data_clean$df
     },
