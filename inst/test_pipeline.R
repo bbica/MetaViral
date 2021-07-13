@@ -25,11 +25,12 @@ VC_stats<-bio_statistics(VC_mx_rel)
 #DRAMv
 viral_annotations<-import_files(wd_example, filetype = "tsv")
 viral_annotations_c<-cleaning(viral_annotations, output_from="DRAMv", remove_flags=c("F", "T", "P", "A")) #with the default parameter for remove_flags;
-#remove_flags=c() translates to an cleaning without filtering in the amg_flags collumn, in the dramv dataset
+#remove_flags=c() translates to an cleaning without filtering out any flag on the amg_flags collumn, in the dramv dataset(viral_annotations)
 
-kegg<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "kegg") #this action uses the KEGGREST package, it will take a bit longer
-peptidase<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "peptidase")
+kegg<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "kegg") #this action uses the KEGGREST package, it will take a bit longer (https://www.kegg.jp/)
+peptidase<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "peptidase") #peptidade refers to the MEROPS (https://www.ebi.ac.uk/merops/)
 vog<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "vog")
+pfam<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "pfam")
+refseq<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "refseq")
+cazy<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "cazy")
 all_db<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = "all")
-vog<-MetaViral::db_exploring(viral_annotations = viral_annotations, database = )
-

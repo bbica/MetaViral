@@ -51,8 +51,8 @@ ui <- shinyUI(
         shiny::radioButtons(inputId = "dataset_type", label = "File type", choices = c("DRAM-v (tsv)", "vConTACT2 (csv)")),
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
-        shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         br(),
+        shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
         br(),
         br(),
@@ -66,9 +66,8 @@ ui <- shinyUI(
         shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Determine Biodiversity Indices", icon = icon("stats-circle", lib="glyphicon"))),
         #shiny::selectizeInput(inputId = "database", label = "Database exploration",
                                 #choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"), multiple=T),
-        br(),
         shinyjs::hidden(shiny::selectInput(inputId = "database", label = "Database exploration",
-                              choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"))),
+                              choices=c("kegg", "pfam", "vog", "refseq", "cazy", "peptidase", "all"))),
         shinyjs::hidden(shiny::actionButton(inputId = "database_explore", label = "Explore"))
 
 
@@ -149,6 +148,8 @@ server <- function(input, output, session) {
   #}
 
   observeEvent(input$dataset_clean, { #button to clean data
+    tryCatch( #displays error on the app when crashing
+      {
     if ( typefile$df == "csv"){
       output_from<-"vcontact2"
     }else{
@@ -172,7 +173,15 @@ server <- function(input, output, session) {
       shinyjs::show("database_explore")
     }
     printer$df<-data_clean$df
+
+      },
+    error = function(err) { #displays error on the app when crashing
+      showNotification(paste0(err), type = "err")
+      message(err)
+    }
+    )#end of tryCatch (error display)
   })#end observeEvent clean
+
   observeEvent(input$dataset_abundance, {
     showNotification("Wait patiently...")
     abundance$df<-MetaViral::abundance_vc(viral_vc = data_clean$df,
