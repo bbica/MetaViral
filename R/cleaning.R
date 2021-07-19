@@ -4,6 +4,7 @@
 #' @param viral_data
 #' @param output_from
 #' @param remove_flags
+#' @param max_aux_score
 #' @param ...
 #' @import dplyr
 #' @importFrom gtools permutations
@@ -16,7 +17,7 @@
 #' }
 #' # This is a function that suppresses log info
 #' @export
-cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T", "P", "A"),...){
+cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T", "P", "A"), max_aux_score=3, ...){
   '%>%' <- tidyr::`%>%`
   if (output_from=="vcontact2"){
     viral_genome <- tidyr::separate(viral_data, col=filename, into=c("Biome", "Category"), sep="-(?=[^-])", extra = "merge")
@@ -43,7 +44,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
 
 
   }else if (output_from=="DRAMv") {
-    #extract only the name of the biome from the filename column (FAZER pipes!!!)
+    #extract only the name of the biome from the filename column
     DRAMv_with_sources <- tidyr::separate(viral_data, col=filename, into=c("Biome", "junk"), sep="_(?=[^_]+$)", extra = "merge")
     DRAMv_with_sources <- tidyr::separate(DRAMv_with_sources, col=Biome, into=c("junk2", "Biome"), sep="(?=[A-z0-9])", extra = "merge")
     DRAMv_with_sources$junk <- NULL
@@ -54,7 +55,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       tidyr::separate(col=protein_and_vname, into=c("viral_function", "viral_tax"), sep="(?=\\[)")%>% #separates the column by the fist  "["
       #kegg
       tidyr::separate(col=kegg_hit, into=c("kegg_hit", "kegg_hit2"), sep=";")%>%
-      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "junk"), sep="(?=\\[)")%>%
+      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "junk"), sep="(?=[^ ]+$)", extra = "merge")%>%
       #vogdb
       tidyr::separate(col=vogdb_description, into=c("vogdb_description", "junk"), sep=";")%>%
       tidyr::separate(col=vogdb_description, into=c("junk2", "vogdb_description"), sep="(?=\\s)", extra = "merge")%>%
@@ -79,7 +80,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     #removes rows with NA in the amg_flags
     DRAMv_with_sources4 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
     #filter for only auxiliary scores inferior to 4
-    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<4)
+    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<(max_aux_score+1))
     #filter out flags related with viral function
       if (rlang::is_empty(remove_flags)==TRUE){
 
