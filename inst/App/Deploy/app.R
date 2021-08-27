@@ -9,6 +9,7 @@ library(purrr)
 library(tidyr)
 library(gtools)
 library(shinyFiles)
+library(data.table)
 
 list_csv <- function(flnm) {
   '%>%' <- tidyr::`%>%`
@@ -93,7 +94,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       tidyr::separate(col=pfam_hits, into=c("pfam_hits", "pfam_id"), sep="(?=\\[)")%>%
       #peptidase
       tidyr::separate(col=peptidase_hit, into=c("junk", "peptidase_hit"), sep="-", extra = "merge")%>%
-      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?≥\\))", extra = "merge")%>%
+      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?<=\\))", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "peptidase_tax"), sep="(?=\\()", extra = "drop")%>%
       tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")
 
@@ -527,7 +528,7 @@ server <- function(input, output, session) {
     output$dir<-renderText({wd})
 
     data$df<- map2_df(input$dataset$name, input$dataset$datapath,
-                      ~fread(.y)%>% mutate(filename = .x))
+                    ~data.table::fread(.y)%>% mutate(filename = .x))
     output$imported_table<-DT::renderDataTable({
       data$df
     },
@@ -555,7 +556,7 @@ server <- function(input, output, session) {
 
 
         }
-        data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)
+        data_clean$df<- cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)
         output$imported_table<-DT::renderDataTable({
           data_clean$df
         },
@@ -582,7 +583,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$dataset_abundance, {
     showNotification("Wait patiently...")
-    abundance$df<-MetaViral::abundance_vc(viral_vc = data_clean$df,
+    abundance$df<-abundance_vc(viral_vc = data_clean$df,
                                           taxa = input$taxa_selection,
                                           abuntype = input$dataset_matrix,
                                           output_type = "matrix")
@@ -601,7 +602,7 @@ server <- function(input, output, session) {
 
   })#end of observeEvent abundance
   observeEvent(input$bio_stats, {
-    biostats<-MetaViral::bio_statistics(abundance$df)
+    biostats<-bio_statistics(abundance$df)
 
     output$imported_table<-DT::renderDataTable({
       biostats
@@ -612,7 +613,7 @@ server <- function(input, output, session) {
   })#end of observeEvent bio_stats
 
   observeEvent(input$database_explore, {
-    data_base<-MetaViral::db_exploring(viral_annotations = data_clean$df, database = input$database )
+    data_base<-db_exploring(viral_annotations = data_clean$df, database = input$database )
 
     output$imported_table<-DT::renderDataTable({
       data_base

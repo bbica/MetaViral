@@ -63,7 +63,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       tidyr::separate(col=pfam_hits, into=c("pfam_hits", "pfam_id"), sep="(?=\\[)")%>%
       #peptidase
       tidyr::separate(col=peptidase_hit, into=c("junk", "peptidase_hit"), sep="-", extra = "merge")%>%
-      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?≥\\))", extra = "merge")%>%
+      tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?<=\\))", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "peptidase_tax"), sep="(?=\\()", extra = "drop")%>%
       tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")
 
