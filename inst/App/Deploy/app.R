@@ -47,7 +47,7 @@ import_files <- function(path, filetype="tsv"){
   return(export_files)
 }
 
-cleaning<-function(viral_data, output_from="vcontact2", ...){
+cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T", "P", "A"), max_aux_score=3, ...){
   '%>%' <- tidyr::`%>%`
   if (output_from=="vcontact2"){
     viral_genome <- tidyr::separate(viral_data, col=filename, into=c("Biome", "Category"), sep="-(?=[^-])", extra = "merge")
@@ -74,7 +74,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
 
 
   }else if (output_from=="DRAMv") {
-    #extract only the name of the biome from the filename column (FAZER pipes!!!)
+    #extract only the name of the biome from the filename column
     DRAMv_with_sources <- tidyr::separate(viral_data, col=filename, into=c("Biome", "junk"), sep="_(?=[^_]+$)", extra = "merge")
     DRAMv_with_sources <- tidyr::separate(DRAMv_with_sources, col=Biome, into=c("junk2", "Biome"), sep="(?=[A-z0-9])", extra = "merge")
     DRAMv_with_sources$junk <- NULL
@@ -85,7 +85,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
       tidyr::separate(col=protein_and_vname, into=c("viral_function", "viral_tax"), sep="(?=\\[)")%>% #separates the column by the fist  "["
       #kegg
       tidyr::separate(col=kegg_hit, into=c("kegg_hit", "kegg_hit2"), sep=";")%>%
-      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "junk"), sep="(?=\\[)")%>%
+      tidyr::separate(col=kegg_hit, into=c("kegg_hit", "junk"), sep="(?=[^ ]+$)", extra = "merge")%>%
       #vogdb
       tidyr::separate(col=vogdb_description, into=c("vogdb_description", "junk"), sep=";")%>%
       tidyr::separate(col=vogdb_description, into=c("junk2", "vogdb_description"), sep="(?=\\s)", extra = "merge")%>%
@@ -110,14 +110,16 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
     #removes rows with NA in the amg_flags
     DRAMv_with_sources4 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
     #filter for only auxiliary scores inferior to 4
-    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<4)
+    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<(max_aux_score+1))
     #filter out flags related with viral function
-    unwanted_flags <- c("F", "T", "P", "A")
+    if (rlang::is_empty(remove_flags)==TRUE){
 
-    for (i in 1:max(nchar(DRAMv_with_sources4$amg_flags))) {
-      prm<-gtools::permutations(n=4,r=i,v=unwanted_flags, repeats.allowed = TRUE)
-      prm<-apply(prm, 1, function(x) paste0(x, collapse=''))
-      DRAMv_with_sources4<-DRAMv_with_sources4[ ! DRAMv_with_sources4$amg_flags %in% prm, ]
+    }else{
+      for (i in 1:max(nchar(DRAMv_with_sources4$amg_flags))) {
+        prm<-gtools::permutations(n=length(remove_flags),r=i,v=remove_flags, repeats.allowed = TRUE)
+        prm<-apply(prm, 1, function(x) paste0(x, collapse=''))
+        DRAMv_with_sources4<-DRAMv_with_sources4[ ! DRAMv_with_sources4$amg_flags %in% prm, ]
+      }
     }
 
     viral_annotations<-DRAMv_with_sources4
@@ -127,6 +129,7 @@ cleaning<-function(viral_data, output_from="vcontact2", ...){
     warning("output_from must be vcontact2 or DRAMv")
   }
 }#end of function
+
 
 abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
   '%>%' <- tidyr::`%>%`
@@ -438,9 +441,9 @@ ui <- shinyUI(
 
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        h4("Choose the directory with your data"),
-
-        shinyFiles::shinyDirButton(id = "dataset", label = "Select path", title="Select path"),
+        fileInput("dataset", h4("Choose file(s):"),
+                  accept = c(".tsv",".csv"),multiple = TRUE),
+        #shinyFiles::shinyDirButton(id = "dataset", label = "Select path", title="Select path"),
         #shiny::selectInput(inputId = "dataset_type", label = "File type", choices = c("DRAM-v", "vConTACT2")),
         br(),
         br(),
@@ -448,22 +451,21 @@ ui <- shinyUI(
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
         br(),
+        shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
         br(),
         br(),
         hr(style = "border-color: black"),
         br(),
         shinyjs::hidden(shiny::radioButtons(inputId = "dataset_matrix", label = "Abundance type to generate", choices = c("absolute", "relative"))),
-        shinyjs::hidden(shiny::selectInput(inputId = "taxa_selection", label = "Taxa to analyse", choices = c("Order", "Family", "Genus", "Genome"))),
-        shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Calculate", icon = icon("thumbnails-small", lib = "glyphicon"))),
-        br(),
+        shinyjs::hidden(shiny::selectInput(inputId = "taxa_selection", label = "Taxon", choices = c("Order", "Family", "Genus", "Genome"))),
+        shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Abundance matrix", icon = icon("thumbnails-small", lib = "glyphicon"))),
         br(),
         shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Determine Biodiversity Indices", icon = icon("stats-circle", lib="glyphicon"))),
         #shiny::selectizeInput(inputId = "database", label = "Database exploration",
         #choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"), multiple=T),
-        br(),
         shinyjs::hidden(shiny::selectInput(inputId = "database", label = "Database exploration",
-                                           choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"))),
+                                           choices=c("kegg", "pfam", "vog", "refseq", "cazy", "peptidase", "all"))),
         shinyjs::hidden(shiny::actionButton(inputId = "database_explore", label = "Explore"))
 
 
@@ -474,7 +476,7 @@ ui <- shinyUI(
 
         div(
           style = "position:absolute;top:1em; right:1em;",
-          shinyjs::hidden(selectInput(inputId ="downTypeRaw", label = "Save as:", choices=c("rds", "csv"))),
+          shinyjs::hidden(selectInput(inputId ="downTypeRaw", label = "Filetype", choices=c("rds", "csv"))),
           shinyjs::hidden(downloadButton(outputId = "downloadRaw", label = "Download"))
         ),
         br(),
@@ -494,7 +496,6 @@ server <- function(input, output, session) {
   #Initiate variables
   typefile<-reactiveValues(df=NULL)
   data<-reactiveValues(df=NULL)
-  shinyDirChoose(input, 'dataset', filetypes=c("csv", "tsv"), roots=c(wd = normalizePath("~")))
   data_clean<-reactiveValues(df=NULL)
   abundance<-reactiveValues(df=NULL)
   printer<-reactiveValues(df=NULL)
@@ -519,13 +520,14 @@ server <- function(input, output, session) {
       typefile$df<-"csv"
     } else { #DRAM-v filetype
       typefile$df<-"tsv"
-
+      shinyjs::show("amg_flags")
     }
     x<<-input$dataset
     wd<<-file.path(normalizePath("~"), paste(unlist(x$path[-1]), collapse = .Platform$file.sep))
     output$dir<-renderText({wd})
 
-    data$df<-MetaViral::import_files(path=wd, filetype = typefile$df)
+    data$df<- map2_df(input$dataset$name, input$dataset$datapath,
+                      ~fread(.y)%>% mutate(filename = .x))
     output$imported_table<-DT::renderDataTable({
       data$df
     },
@@ -534,33 +536,50 @@ server <- function(input, output, session) {
     showNotification("Done")
     shinyjs::show("downloadRaw")
     shinyjs::show("downTypeRaw")
+
     printer$df<-data$df
 
   })#end observeEvente import
 
+  #if(typefile$df == "tsv"){
+  #shinyjs::show("amg_flags")
+  #}
+
   observeEvent(input$dataset_clean, { #button to clean data
-    if ( typefile$df == "csv"){
-      output_from<-"vcontact2"
-    }else{
-      output_from<-"DRAMv"
-    }
-    data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from)
-    output$imported_table<-DT::renderDataTable({
-      data_clean$df
-    },
-    options=(list(pageLength=10,scrollX=TRUE))
-    )
-    showNotification("Done")
-    if (output_from == "vcontact2"){
-      shinyjs::show("dataset_matrix")
-      shinyjs::show("taxa_selection")
-      shinyjs::show("dataset_abundance")
-    }else{
-      shinyjs::show("database")
-      shinyjs::show("database_explore")
-    }
-    printer$df<-data_clean$df
+    tryCatch( #displays error on the app when crashing
+      {
+        if ( typefile$df == "csv"){
+          output_from<-"vcontact2"
+        }else{
+          output_from<-"DRAMv"
+
+
+        }
+        data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)
+        output$imported_table<-DT::renderDataTable({
+          data_clean$df
+        },
+        options=(list(pageLength=10,scrollX=TRUE))
+        )
+        showNotification("Done")
+        if (output_from == "vcontact2"){
+          shinyjs::show("dataset_matrix")
+          shinyjs::show("taxa_selection")
+          shinyjs::show("dataset_abundance")
+        }else{
+          shinyjs::show("database")
+          shinyjs::show("database_explore")
+        }
+        printer$df<-data_clean$df
+
+      },
+      error = function(err) { #displays error on the app when crashing
+        showNotification(paste0(err), type = "err")
+        message(err)
+      }
+    )#end of tryCatch (error display)
   })#end observeEvent clean
+
   observeEvent(input$dataset_abundance, {
     showNotification("Wait patiently...")
     abundance$df<-MetaViral::abundance_vc(viral_vc = data_clean$df,
