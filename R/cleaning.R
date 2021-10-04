@@ -25,7 +25,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("junk", "Category"), sep="(?=[0-9])", remove = FALSE)
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("Category", "junk"), sep="[-]", extra = "merge")
     viral_genome$junk <- NULL
-    viral_genome<-viral_genome[,-1]
+
 
     viral_vc<-viral_genome %>%
       dplyr::group_by(`VC Subcluster`) %>%

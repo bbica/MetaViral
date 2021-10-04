@@ -334,13 +334,20 @@ db_exploring<-function(viral_annotations, database="all"){
       dplyr::add_count(pfam_hits,name="pfam_counts", Biome)
     return(pfam)
 
-  }else if (database=="viral"){
-    viraldb<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
-                           viral_bitScore, viral_eVal, fasta)
-    viraldb<-na.omit(viraldb)
-    viraldb<-viraldb %>%
+  }else if (database=="refseq"){
+    refseq<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
+                          viral_bitScore, viral_eVal, fasta)
+    refseq<-na.omit(refseq)
+    refseq<-refseq %>%
       dplyr::add_count(viral_function,name="viral_counts", Biome)
-    return(viraldb)
+    return(refseq)
+
+  }else if (database=="cazy"){ #dbCAN, automated carbohydrate-active enzyme (CAZyme) annotation (http://bcb.unl.edu/dbCAN2/)
+    cazy<-dplyr::select(viral_annotations, Biome, cazy_hits, fasta)
+    cazy<-na.omit(cazy)
+    cazy<- cazy %>%
+      dplyr::add_count(cazy_hits, name="cazy_counts", Biome)
+    return(cazy)
 
   }else if (database=="all"){
     peptidase<-dplyr::select(viral_annotations, peptidase_hit, peptidase_id, peptidase_family, peptidase_RBH, peptidase_eVal, Biome)
@@ -388,17 +395,23 @@ db_exploring<-function(viral_annotations, database="all"){
     pfam<-pfam %>%
       dplyr::add_count(pfam_hits,name="pfam_counts", Biome)
 
-    viraldb<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
-                           viral_bitScore, viral_eVal)
-    viraldb<-na.omit(viraldb)
-    viraldb<-viraldb %>%
+    refseq<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
+                          viral_bitScore, viral_eVal)
+    refseq<-na.omit(refseq)
+    refseq<-refseq %>%
       dplyr::add_count(viral_function,name="viral_counts", Biome)
+
+    cazy<-dplyr::select(viral_annotations, Biome, cazy_hits)
+    cazy<-na.omit(cazy)
+    cazy<- cazy %>%
+      dplyr::add_count(cazy_hits, name="cazy_counts", Biome)
+
     #merge all db
-    database_all<-Reduce(function(x,y) merge(x,y,by="Biome",all=TRUE) ,list(kegg, pfam, vog, viraldb, peptidase))
+    database_all<-Reduce(function(x,y) merge(x,y,by="Biome",all=TRUE) ,list(kegg, pfam, vog, refseq, peptidase, cazy))
     return(database_all)
 
   }else {
-    warning("choose one of the following: kegg, pfam, vog, viraldb, peptidase or all")
+    warning("choose one of the following: kegg, pfam, vog, refseq, cazy, peptidase or all")
   }
 }#end of function
 
