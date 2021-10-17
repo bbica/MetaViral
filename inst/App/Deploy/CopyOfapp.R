@@ -11,8 +11,6 @@ library(gtools)
 library(shinyFiles)
 library(data.table)
 
-
-
 #Before deploying run: (this will enable the detection of the Bioconductor package)
 #library(BiocManager)
 #options(repos = BiocManager::repositories())
