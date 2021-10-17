@@ -30,8 +30,10 @@ ui <- shinyUI(
       shiny::titlePanel(title = div(
         shiny::splitLayout(
           cellWidths = NULL,
-          h2("MetaViral app", align = "left"),
-
+          h2("MetaViral app", align = "left",
+          img(height = 55, width = 75,
+              src = "logomv.png",
+              class = "pull-center")),
           div(
             style = "position:absolute;top:1em; right:1em;",
             a(img(height = 50, width = 50, src="logo.png"), href="https://github.com/bbica/MetaViral") ,
@@ -51,10 +53,14 @@ ui <- shinyUI(
         shiny::radioButtons(inputId = "dataset_type", label = "File type", choices = c("DRAM-v (tsv)", "vConTACT2 (csv)")),
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
+        hr(style = "border-color: black"),
+        h5("...or use the example data"),
+        shiny::actionButton(inputId = "ex_dram", label = "Example data (DRAM-v)"),
+        shiny::actionButton(inputId = "ex_vcontact", label = "Example data (vConTACT2)"),
         br(),
+        hr(style = "border-color: black"),
         shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
-        br(),
         br(),
         hr(style = "border-color: black"),
         br(),
@@ -63,11 +69,12 @@ ui <- shinyUI(
         shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Abundance matrix", icon = icon("thumbnails-small", lib = "glyphicon"))),
         br(),
         br(),
-        shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Determine Biodiversity Indices", icon = icon("stats-circle", lib="glyphicon"))),
-        #shiny::selectizeInput(inputId = "database", label = "Database exploration",
-                                #choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"), multiple=T),
+        shinyjs::hidden(shiny::actionButton(inputId = "bio_stats", label = "Determine Biodiversity Indices",
+                                            icon = icon("stats-circle", lib="glyphicon"))),
+
         shinyjs::hidden(shiny::selectInput(inputId = "database", label = "Database exploration",
                               choices=c("kegg", "pfam", "vog", "refseq", "cazy", "peptidase", "all"))),
+
         shinyjs::hidden(shiny::actionButton(inputId = "database_explore", label = "Explore"))
 
 
@@ -75,6 +82,7 @@ ui <- shinyUI(
       ), #end of sidebarPanel
       shiny::mainPanel(fluidRow(
         h2("Dataset"),
+        #img(src='logomv.png', align = "center"),
 
           div(
             style = "position:absolute;top:1em; right:1em;",
@@ -141,11 +149,40 @@ server <- function(input, output, session) {
 
    printer$df<-data$df
 
-  })#end observeEvente import
+  })#end observeEvent import
 
-  #if(typefile$df == "tsv"){
-  #shinyjs::show("amg_flags")
-  #}
+  observeEvent(input$ex_dram, { #button to upload example data (DRAM-v)
+    typefile$df<-"tsv"
+    data$df<-MetaViral::import_files(path="./www/ExampleData", filetype = "tsv")
+    output$imported_table<-DT::renderDataTable({
+      data$df
+    },
+    options=(list(pageLength=10,scrollX=TRUE))
+    )
+    showNotification("Done")
+    shinyjs::show("downloadRaw")
+    shinyjs::show("downTypeRaw")
+
+    printer$df<-data$df
+    shinyjs::show("amg_flags")
+
+  })#end observeEvent example data (DRAM-v)
+
+  observeEvent(input$ex_vcontact, { #button to upload example data (vcontact)
+    typefile$df<-"csv"
+    data$df<-MetaViral::import_files(path="./www/ExampleData", filetype = "csv")
+    output$imported_table<-DT::renderDataTable({
+      data$df
+    },
+    options=(list(pageLength=10,scrollX=TRUE))
+    )
+    showNotification("Done")
+    shinyjs::show("downloadRaw")
+    shinyjs::show("downTypeRaw")
+
+    printer$df<-data$df
+
+  })#end observeEvent example data (vcontact)
 
   observeEvent(input$dataset_clean, { #button to clean data
     tryCatch( #displays error on the app when crashing
@@ -154,7 +191,6 @@ server <- function(input, output, session) {
       output_from<-"vcontact2"
     }else{
       output_from<-"DRAMv"
-
 
     }
     data_clean$df<- MetaViral::cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)

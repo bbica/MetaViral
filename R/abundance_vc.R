@@ -16,6 +16,9 @@
 #' @export
 abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
   '%>%' <- tidyr::`%>%`
+  #Replace NA by 1 in the Category column
+  viral_vc[is.na(viral_vc$Category)]<-1
+
   #Majority rules
   viral_test1<-viral_vc %>%
     # add a column n with count by categories

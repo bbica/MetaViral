@@ -11,6 +11,12 @@ library(gtools)
 library(shinyFiles)
 library(data.table)
 
+#Before deploying run: (this will enable the detection of the Bioconductor package)
+#library(BiocManager)
+#options(repos = BiocManager::repositories())
+
+
+
 list_csv <- function(flnm) {
   '%>%' <- tidyr::`%>%`
   return_namefile <-
@@ -29,16 +35,15 @@ list_tsv <- function(flnm) {
 
 import_files <- function(path, filetype="tsv"){
   '%>%' <- tidyr::`%>%`
-  wd_dram<-path
-  setwd(wd_dram)
+
   if (filetype=="tsv"){
     export_files <-
-      list.files(pattern = paste0("*.", filetype),
+      list.files(path=path, pattern = paste0("*.", filetype),
                  full.names = T) %>%
       purrr::map_df(~list_tsv(.))
   } else if (filetype=="csv"){
     export_files <-
-      list.files(pattern = paste0("*.", filetype),
+      list.files(path=path, pattern = paste0("*.", filetype),
                  full.names = T) %>%
       purrr::map_df(~list_csv(.))
   } else {
@@ -56,7 +61,6 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("junk", "Category"), sep="(?=[0-9])", remove = FALSE)
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("Category", "junk"), sep="[-]", extra = "merge")
     viral_genome$junk <- NULL
-    viral_genome<-viral_genome[,-1]
 
     viral_vc<-viral_genome %>%
       dplyr::group_by(`VC Subcluster`) %>%
@@ -443,8 +447,10 @@ ui <- shinyUI(
       shiny::titlePanel(title = div(
         shiny::splitLayout(
           cellWidths = NULL,
-          h2("MetaViral app", align = "left"),
-
+          h2("MetaViral app", align = "left",
+             img(height = 55, width = 75,
+                 src = "logomv.png",
+                 class = "pull-center")),
           div(
             style = "position:absolute;top:1em; right:1em;",
             a(img(height = 50, width = 50, src="logo.png"), href="https://github.com/bbica/MetaViral") ,
@@ -459,14 +465,17 @@ ui <- shinyUI(
                   accept = c(".tsv",".csv"),multiple = TRUE),
         #shinyFiles::shinyDirButton(id = "dataset", label = "Select path", title="Select path"),
         #shiny::selectInput(inputId = "dataset_type", label = "File type", choices = c("DRAM-v", "vConTACT2")),
-        br(),
-        br(),
         shiny::radioButtons(inputId = "dataset_type", label = "File type", choices = c("DRAM-v (tsv)", "vConTACT2 (csv)")),
         shiny::actionButton(inputId = "dataset_import", label = "Upload", icon = icon("log-out", lib = "glyphicon")),
         br(),
+        hr(style = "border-color: black"),
+        h5("...or use the example data"),
+        shiny::actionButton(inputId = "ex_dram", label = "Example data (DRAM-v)"),
+        shiny::actionButton(inputId = "ex_vcontact", label = "Example data (vConTACT2)"),
         br(),
+        hr(style = "border-color: black"),
         shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
-        shiny::actionButton(inputId = "dataset_clean", label = "Clean", icon = icon("clean", lib = "glyphicon")),
+        shinyjs::hidden(shiny::actionButton(inputId = "dataset_clean", label = "Process data", icon = icon("clean", lib = "glyphicon"))),
         br(),
         br(),
         hr(style = "border-color: black"),
@@ -523,7 +532,7 @@ server <- function(input, output, session) {
     options = (list(scrollX = TRUE))
   )
   output$dir <- renderPrint({
-    cat(c("No", "directory", "selected"), sep = " ")
+    cat(c("No", "file(s)", "selected"), sep = " ")
   })
 
   #Initiate observeEvents
@@ -532,9 +541,16 @@ server <- function(input, output, session) {
 
     if (input$dataset_type=="vConTACT2 (csv)"){
       typefile$df<-"csv"
+      shinyjs::hide("amg_flags")
+      shinyjs::hide("database")
+      shinyjs::hide("database_explore")
     } else { #DRAM-v filetype
       typefile$df<-"tsv"
       shinyjs::show("amg_flags")
+      shinyjs::hide("dataset_matrix")
+      shinyjs::hide("taxa_selection")
+      shinyjs::hide("dataset_abundance")
+      shinyjs::hide("bio_stats")
     }
     x<<-input$dataset
     wd<<-file.path(normalizePath("~"), paste(unlist(x$path[-1]), collapse = .Platform$file.sep))
@@ -550,14 +566,53 @@ server <- function(input, output, session) {
     showNotification("Done")
     shinyjs::show("downloadRaw")
     shinyjs::show("downTypeRaw")
-
+    shinyjs::show("dataset_clean")
     printer$df<-data$df
 
   })#end observeEvente import
 
-  #if(typefile$df == "tsv"){
-  #shinyjs::show("amg_flags")
-  #}
+  observeEvent(input$ex_dram, { #button to upload example data (DRAM-v)
+    typefile$df<-"tsv"
+    data$df<-import_files(path="./www", filetype = "tsv")
+    data$df$filename<-gsub("./www/", "", data$df$filename)
+    output$imported_table<-DT::renderDataTable({
+      data$df
+    },
+    options=(list(pageLength=10,scrollX=TRUE))
+    )
+    showNotification("Done")
+    shinyjs::show("downloadRaw")
+    shinyjs::show("downTypeRaw")
+    shinyjs::show("dataset_clean")
+    printer$df<-data$df
+    shinyjs::show("amg_flags")
+    shinyjs::hide("dataset_matrix")
+    shinyjs::hide("taxa_selection")
+    shinyjs::hide("dataset_abundance")
+    shinyjs::hide("bio_stats")
+
+  })#end observeEvent example data (DRAM-v)
+
+  observeEvent(input$ex_vcontact, { #button to upload example data (vcontact)
+    typefile$df<-"csv"
+    data$df<-import_files(path="./www", filetype = "csv")
+    data$df$filename<-gsub("./www/", "", data$df$filename)
+    output$imported_table<-DT::renderDataTable({
+      data$df
+    },
+    options=(list(pageLength=10,scrollX=TRUE))
+    )
+    showNotification("Done")
+    shinyjs::hide("amg_flags")
+    shinyjs::hide("database")
+    shinyjs::hide("database_explore")
+    shinyjs::show("downloadRaw")
+    shinyjs::show("downTypeRaw")
+    shinyjs::show("dataset_clean")
+    printer$df<-data$df
+
+  })#end observeEvent example data (vcontact)
+
 
   observeEvent(input$dataset_clean, { #button to clean data
     tryCatch( #displays error on the app when crashing
