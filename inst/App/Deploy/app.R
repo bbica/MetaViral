@@ -59,6 +59,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("junk", "Category"), sep="(?=[0-9])", remove = FALSE)
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("Category", "junk"), sep="[-]", extra = "merge")
     viral_genome$junk <- NULL
+    viral_genome$Category[is.na(viral_genome$Category)] <- 0 #This enables the latter manipulations even if Category info is absent
 
     viral_vc<-viral_genome %>%
       dplyr::group_by(`VC Subcluster`) %>%
@@ -98,7 +99,10 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       tidyr::separate(col=peptidase_hit, into=c("junk", "peptidase_hit"), sep="-", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?<=\\))", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "peptidase_tax"), sep="(?=\\()", extra = "drop")%>%
-      tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")
+      tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")%>%
+      #Cazy
+      tidyr::separate(col=cazy_hits, into=c("cazy_hits", "junk"), sep="(?=\\()", extra = "drop")%>%
+      tidyr::separate(col=cazy_hits, into=c("junk2", "cazy_hits"), sep="\\s", extra = "merge")
 
     DRAMv_with_sources2$junk <- NULL
     DRAMv_with_sources2$junk2 <- NULL
@@ -111,9 +115,9 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       dplyr::filter_at( dplyr::vars(kegg_hit,viral_function,pfam_hits,cazy_hits,vogdb_description,peptidase_hit),dplyr::any_vars(!is.na(.)))
 
     #removes rows with NA in the amg_flags
-    DRAMv_with_sources4 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
+    #DRAMv_with_sources3 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
     #filter for only auxiliary scores inferior to 4
-    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources4, auxiliary_score<(max_aux_score+1))
+    DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources3, auxiliary_score<(max_aux_score+1))
     #filter out flags related with viral function
     if (rlang::is_empty(remove_flags)==TRUE){
 
@@ -324,9 +328,6 @@ db_exploring<-function(viral_annotations, database="all"){
       }
     }#end of for loop
 
-    kegg<-kegg %>%
-      dplyr::add_count(Pathway,name="pathway_counts", Biome)
-
     return(kegg)
 
   }else if (database=="pfam"){
@@ -356,16 +357,19 @@ db_exploring<-function(viral_annotations, database="all"){
     peptidase<-na.omit(peptidase)
     peptidase<-peptidase %>%
       dplyr::add_count(peptidase_hit,name="peptidase_counts", Biome)
+    peptidase<-unique(peptidase[, c("peptidase_hit","Biome","peptidase_counts")])
 
     vog<-dplyr::select(viral_annotations, vogdb_description, Biome)
     vog<-na.omit(vog)
     vog<-vog %>%
       dplyr::add_count(vogdb_description,name="vog_counts", Biome)
+    vog<-unique(vog[, c("vogdb_description","Biome","vog_counts")])
 
     kegg<-dplyr::select(viral_annotations, Biome, kegg_hit, kegg_id)
     kegg<-na.omit(kegg)
     kegg<-kegg %>%
       dplyr::add_count(kegg_hit,name="kegg_counts", Biome)
+    kegg<-unique(kegg[, c("kegg_hit","kegg_id","Biome","kegg_counts")])
 
     kegg$Pathway<-NA
     kegg$Pathway2<-NA
@@ -389,24 +393,25 @@ db_exploring<-function(viral_annotations, database="all"){
       }
     }#end of for loop
 
-    kegg<-kegg %>%
-      dplyr::add_count(Pathway,name="pathway_counts", Biome)
-
     pfam<-dplyr::select(viral_annotations, Biome, pfam_hits, pfam_id)
     pfam<-na.omit(pfam)
     pfam<-pfam %>%
       dplyr::add_count(pfam_hits,name="pfam_counts", Biome)
+    pfam<-unique(pfam[, c("pfam_hits","Biome","pfam_counts")])
+
 
     refseq<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
                           viral_bitScore, viral_eVal)
     refseq<-na.omit(refseq)
     refseq<-refseq %>%
       dplyr::add_count(viral_function,name="viral_counts", Biome)
+    refseq<-unique(refseq[, c("viral_function","Biome","viral_counts")])
 
     cazy<-dplyr::select(viral_annotations, Biome, cazy_hits)
     cazy<-na.omit(cazy)
     cazy<- cazy %>%
       dplyr::add_count(cazy_hits, name="cazy_counts", Biome)
+    cazy<-unique(cazy[, c("cazy_hits","Biome","cazy_counts")])
 
     #merge all db
     database_all<-Reduce(function(x,y) merge(x,y,by="Biome",all=TRUE) ,list(kegg, pfam, vog, refseq, peptidase, cazy))
@@ -417,9 +422,8 @@ db_exploring<-function(viral_annotations, database="all"){
   }
 }#end of function
 
-######
+
 # UI #
-######
 ui <- shinyUI(
   fluidPage(
     tags$head(
@@ -472,6 +476,9 @@ ui <- shinyUI(
         shiny::actionButton(inputId = "ex_vcontact", label = "Example data (vConTACT2)"),
         br(),
         hr(style = "border-color: black"),
+        #shinyjs::hidden(shiny::selectInput(inputId = "aux_score", label = "Max aux score", choices = c("1", "2", "3", "4", "5"), multiple = FALSE)),
+        shinyjs::hidden(shiny::numericInput(inputId = "aux_score", label = "Max aux score", 4, min = 1, max = 5),
+        verbatimTextOutput("value")),
         shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         shinyjs::hidden(shiny::actionButton(inputId = "dataset_clean", label = "Process data", icon = icon("clean", lib = "glyphicon"))),
         br(),
@@ -512,7 +519,7 @@ ui <- shinyUI(
   )#end of fluidPage
 )#end of shintUI
 
-
+# server #
 server <- function(input, output, session) {
   #Initiate variables
   typefile<-reactiveValues(df=NULL)
@@ -539,11 +546,13 @@ server <- function(input, output, session) {
 
     if (input$dataset_type=="vConTACT2 (csv)"){
       typefile$df<-"csv"
+      shinyjs::hide("aux_score")
       shinyjs::hide("amg_flags")
       shinyjs::hide("database")
       shinyjs::hide("database_explore")
     } else { #DRAM-v filetype
       typefile$df<-"tsv"
+      shinyjs::show("aux_score")
       shinyjs::show("amg_flags")
       shinyjs::hide("dataset_matrix")
       shinyjs::hide("taxa_selection")
@@ -583,6 +592,7 @@ server <- function(input, output, session) {
     shinyjs::show("downTypeRaw")
     shinyjs::show("dataset_clean")
     printer$df<-data$df
+    shinyjs::show("aux_score")
     shinyjs::show("amg_flags")
     shinyjs::hide("dataset_matrix")
     shinyjs::hide("taxa_selection")
@@ -601,6 +611,7 @@ server <- function(input, output, session) {
     options=(list(pageLength=10,scrollX=TRUE))
     )
     showNotification("Done")
+    shinyjs::hide("aux_score")
     shinyjs::hide("amg_flags")
     shinyjs::hide("database")
     shinyjs::hide("database_explore")
@@ -619,10 +630,11 @@ server <- function(input, output, session) {
           output_from<-"vcontact2"
         }else{
           output_from<-"DRAMv"
-
+          output$value <- renderText({ input$aux_score })
 
         }
-        data_clean$df<- cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags)
+
+        data_clean$df<- cleaning(viral_data = data$df, output_from = output_from, remove_flags = input$amg_flags, max_aux_score = input$aux_score )
         output$imported_table<-DT::renderDataTable({
           data_clean$df
         },

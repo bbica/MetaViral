@@ -19,13 +19,14 @@
 #' @export
 cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T", "P", "A"), max_aux_score=3, ...){
   '%>%' <- tidyr::`%>%`
+
   if (output_from=="vcontact2"){
     viral_genome <- tidyr::separate(viral_data, col=filename, into=c("Biome", "Category"), sep="-(?=[^-])", extra = "merge")
     viral_genome <- tidyr::separate(viral_genome, col=Biome, into=c("junk", "Biome"), sep="(?=[A-z0-9])", extra = "merge")
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("junk", "Category"), sep="(?=[0-9])", remove = FALSE)
     viral_genome <- tidyr::separate(viral_genome, col=Category, into=c("Category", "junk"), sep="[-]", extra = "merge")
     viral_genome$junk <- NULL
-
+    viral_genome$Category[is.na(viral_genome$Category)] <- 0 #This enables the latter manipulations even if Category info is absent
 
     viral_vc<-viral_genome %>%
       dplyr::group_by(`VC Subcluster`) %>%
@@ -51,6 +52,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     DRAMv_with_sources$junk2 <- NULL
 
     DRAMv_with_sources2 <- DRAMv_with_sources%>%
+      #refseq
       tidyr::separate(col=viral_hit, into=c("viral_function", "protein_and_vname"), sep="\\s", extra="merge")%>%
       tidyr::separate(col=protein_and_vname, into=c("viral_function", "viral_tax"), sep="(?=\\[)")%>% #separates the column by the fist  "["
       #kegg
@@ -65,7 +67,10 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       tidyr::separate(col=peptidase_hit, into=c("junk", "peptidase_hit"), sep="-", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "junk2"), sep="(?<=\\))", extra = "merge")%>%
       tidyr::separate(col=peptidase_hit, into=c("peptidase_hit", "peptidase_tax"), sep="(?=\\()", extra = "drop")%>%
-      tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")
+      tidyr::separate(col=peptidase_tax, into=c("junk", "peptidase_tax"), sep="(?=\\w)", extra = "merge")%>%
+      #Cazy
+      tidyr::separate(col=cazy_hits, into=c("cazy_hits", "junk"), sep="(?=\\()", extra = "drop")%>%
+      tidyr::separate(col=cazy_hits, into=c("junk2", "cazy_hits"), sep="\\s", extra = "merge")
 
     DRAMv_with_sources2$junk <- NULL
     DRAMv_with_sources2$junk2 <- NULL

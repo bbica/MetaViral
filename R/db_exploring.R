@@ -88,17 +88,21 @@ db_exploring<-function(viral_annotations, database="all"){
     peptidase<-dplyr::select(viral_annotations, peptidase_hit, peptidase_id, peptidase_family, peptidase_RBH, peptidase_eVal, Biome)
     peptidase<-na.omit(peptidase)
     peptidase<-peptidase %>%
-      dplyr::add_count(peptidase_hit,name="peptidase_counts", Biome)
+      dplyr::add_count(peptidase_hit,name="peptidase_counts", Biome)%>%
+      unique(peptidase[, c("peptidase_hit","Biome","peptidase_counts", "fasta")])
+
 
     vog<-dplyr::select(viral_annotations, vogdb_description, Biome)
     vog<-na.omit(vog)
     vog<-vog %>%
-      dplyr::add_count(vogdb_description,name="vog_counts", Biome)
+      dplyr::add_count(vogdb_description,name="vog_counts", Biome)%>%
+      unique(vog[, c("vogdb_description","Biome","vog_counts", "fasta")])
 
     kegg<-dplyr::select(viral_annotations, Biome, kegg_hit, kegg_id)
     kegg<-na.omit(kegg)
     kegg<-kegg %>%
-      dplyr::add_count(kegg_hit,name="kegg_counts", Biome)
+      dplyr::add_count(kegg_hit,name="kegg_counts", Biome)%>%
+      unique(kegg[, c("kegg_hit","kegg_id","Biome","kegg_counts", "fasta")])
 
     kegg$Pathway<-NA
     kegg$Pathway2<-NA
@@ -128,18 +132,22 @@ db_exploring<-function(viral_annotations, database="all"){
     pfam<-dplyr::select(viral_annotations, Biome, pfam_hits, pfam_id)
     pfam<-na.omit(pfam)
     pfam<-pfam %>%
-      dplyr::add_count(pfam_hits,name="pfam_counts", Biome)
+      dplyr::add_count(pfam_hits,name="pfam_counts", Biome)%>%
+      unique(pfam[, c("pfam_hits","Biome","pfam_counts")])
+
 
     refseq<-dplyr::select(viral_annotations, Biome, viral_function, viral_id, viral_tax, viral_identity,
                            viral_bitScore, viral_eVal)
     refseq<-na.omit(refseq)
     refseq<-refseq %>%
-      dplyr::add_count(viral_function,name="viral_counts", Biome)
+      dplyr::add_count(viral_function,name="viral_counts", Biome)%>%
+      unique(refseq[, c("viral_function","Biome","viral_counts")])
 
     cazy<-dplyr::select(viral_annotations, Biome, cazy_hits)
     cazy<-na.omit(cazy)
     cazy<- cazy %>%
-      dplyr::add_count(cazy_hits, name="cazy_counts", Biome)
+      dplyr::add_count(cazy_hits, name="cazy_counts", Biome)%>%
+      unique(cazy[, c("cazy_hits","Biome","cazy_counts")])
 
     #merge all db
     database_all<-Reduce(function(x,y) merge(x,y,by="Biome",all=TRUE) ,list(kegg, pfam, vog, refseq, peptidase, cazy))
