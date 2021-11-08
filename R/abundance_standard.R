@@ -25,22 +25,22 @@ abundance_standard<-function(viral_df, taxa="Family", abuntype="relative"){
   if(taxa==vector_taxas[3]){ #in this case, Family
     column_number<-which(vector_columns==vector_taxas[3])
     taxa_list<-unique(viral_df[,column_number])
-    number_taxa<-nrow(taxa_list)
+    number_taxa<-length(taxa_list)
 
   } else if (taxa==vector_taxas[1]){
     column_number<-which(vector_columns==vector_taxas[1])# in case of Genome
     taxa_list<-unique(viral_df[,column_number])
-    number_taxa<-nrow(taxa_list)
+    number_taxa<-length(taxa_list)
 
   } else if (taxa==vector_taxas[2]){
     column_number<-which(vector_columns==vector_taxas[2])# in case of Order
     taxa_list<-unique(viral_df[,column_number])
-    number_taxa<-nrow(taxa_list)
+    number_taxa<-length(taxa_list)
 
   } else if (taxa==vector_taxas[4]){
     column_number<-which(vector_columns==vector_taxas[4])# in case of Genus
     taxa_list<-unique(viral_df[,column_number])
-    number_taxa<-nrow(taxa_list)
+    number_taxa<-length(taxa_list)
 
   } else {
     warning(paste0("Taxa selected isn't among the following: ", paste(vector_taxas, collapse=', ')))
@@ -50,7 +50,7 @@ abundance_standard<-function(viral_df, taxa="Family", abuntype="relative"){
 
   taxa_matrix<-matrix(data=NA, nrow=number_taxa, ncol=number_biomes)
   colnames(taxa_matrix)<-biomes
-  rownames(taxa_matrix)<-purrr::as_vector(taxa_list[,1])
+  rownames(taxa_matrix)<-purrr::as_vector(taxa_list)
 
 
   for (i in 1:length(biomes)){
@@ -60,7 +60,7 @@ abundance_standard<-function(viral_df, taxa="Family", abuntype="relative"){
     dat<-subset[,column_number]
 
     if (abuntype=="relative"){
-      abun_type<-as.matrix(table(dat)/nrow(dat))
+      abun_type<-as.matrix(table(dat)/nrow(table(dat)))
 
     } else if (abuntype=="absolute"){
       abun_type<-as.matrix(table(dat))
@@ -72,7 +72,7 @@ abundance_standard<-function(viral_df, taxa="Family", abuntype="relative"){
     colnames(subset_col_viral_df_order)[2]<-"relAbundByBiome"
 
     for (j in 1:length(purrr::as_vector(taxa_list))){
-      temp_taxa<-purrr::as_vector(taxa_list[j,1])
+      temp_taxa<-purrr::as_vector(taxa_list[j])
       taxa_selected<-which(subset_col_viral_df_order[,1]==temp_taxa)
       abun_of_taxa<-subset_col_viral_df_order[taxa_selected,2] #gives abundance of the taxa selected
       abun_of_taxa<-as.numeric(abun_of_taxa)

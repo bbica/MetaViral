@@ -428,7 +428,6 @@ ui <- shinyUI(
   fluidPage(
     tags$head(
 
-
       # Note the wrapping of the string in HTML()
       tags$style(HTML("
       @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
