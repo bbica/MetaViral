@@ -4,12 +4,14 @@
 \alias{import_files}
 \title{import_files}
 \usage{
-import_files(path, filetype = "tsv")
+import_files(path, filetype = "tsv", col_names = TRUE)
 }
 \arguments{
 \item{path}{path where the files are present}
 
-\item{filetype}{example: "tsv" "csv". Default set to tsv}
+\item{filetype}{example: "tsv" "csv", default set to tsv}
+
+\item{col_names}{TRUE if first row is the header, the default}
 }
 \description{
 imports files

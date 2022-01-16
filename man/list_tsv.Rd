@@ -4,10 +4,12 @@
 \alias{list_tsv}
 \title{list_tsv}
 \usage{
-list_tsv(flnm)
+list_tsv(flnm, col_names2 = TRUE)
 }
 \arguments{
 \item{flnm}{name of the file}
+
+\item{col_names2}{TRUE if first row is the header, the default}
 }
 \description{
 This is a function that suppresses log info

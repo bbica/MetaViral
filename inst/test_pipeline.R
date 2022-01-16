@@ -22,7 +22,7 @@ VC_mx_rel<-MetaViral::abundance_vc(viral_vc=viral_vc, abuntype = "relative", tax
 VC_stats<-bio_statistics(VC_mx_abs)
 VC_stats<-bio_statistics(VC_mx_rel)
 
-#-
+
 #DRAMv
 viral_annotations<-import_files(wd_example, filetype = "tsv")
 viral_annotations_c<-cleaning(viral_annotations, output_from="DRAMv", remove_flags=c("F", "T", "P", "A"), max_aux_score = 3)

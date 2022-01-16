@@ -1,11 +1,11 @@
 #' @title cleaning
 #' @description cleans the output from vcontact2 or DRAM-v
 #' #'
-#' @param viral_data
-#' @param output_from
-#' @param remove_flags
-#' @param max_aux_score
-#' @param ...
+#' @param viral_data file to be clean
+#' @param output_from vcontact2 or DRAMv
+#' @param remove_flags flags to remove
+#' @param max_aux_score maximun auxiliary score
+#' @param ... others
 #' @import dplyr
 #' @importFrom gtools permutations
 #' @importFrom rlang is_empty

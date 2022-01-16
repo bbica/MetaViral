@@ -1,8 +1,8 @@
 #' @title db_exploring
 #' @description isolates the database selected, counts for the biome and can perform other manipulations
 #' #'
-#' @param viral_annotations
-#' @param database
+#' @param viral_annotations dataframe from DRAMv
+#' @param database database to further analize
 #' @import dplyr
 #' @import KEGGREST
 #' @examples

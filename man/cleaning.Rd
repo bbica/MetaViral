@@ -5,18 +5,26 @@
 \title{cleaning}
 \usage{
 cleaning(
-  data,
-  sepby = "-(?=[^-])",
-  fullclean = TRUE,
+  viral_data,
   output_from = "vcontact2",
+  remove_flags = c("F", "T", "P", "A"),
+  max_aux_score = 3,
   ...
 )
 }
 \arguments{
-\item{sepby}{regex comands to separate the column. Vcontact2 regex: "-(?=[^-])" ; DRAM-v regex: "_(?=[^_]+$)"}
+\item{viral_data}{file to be clean}
+
+\item{output_from}{vcontact2 or DRAMv}
+
+\item{remove_flags}{flags to remove}
+
+\item{max_aux_score}{maximun auxiliary score}
+
+\item{...}{others}
 }
 \description{
-cleans
+cleans the output from vcontact2 or DRAM-v
 #'
 }
 \examples{
