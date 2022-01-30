@@ -115,7 +115,7 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
       dplyr::filter_at( dplyr::vars(kegg_hit,viral_function,pfam_hits,cazy_hits,vogdb_description,peptidase_hit),dplyr::any_vars(!is.na(.)))
 
     #removes rows with NA in the amg_flags
-    #DRAMv_with_sources3 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
+    DRAMv_with_sources3 <- DRAMv_with_sources3[!is.na(DRAMv_with_sources3$amg_flags),]
     #filter for only auxiliary scores inferior to 4
     DRAMv_with_sources4<-dplyr::filter(DRAMv_with_sources3, auxiliary_score<(max_aux_score+1))
     #filter out flags related with viral function

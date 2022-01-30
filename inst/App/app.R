@@ -214,7 +214,7 @@ server <- function(input, output, session) {
     error = function(err) { #displays error on the app when crashing
       showNotification(paste0(err), type = "err")
       message(err)
-    }
+      }
     )#end of tryCatch (error display)
   })#end observeEvent clean
 
