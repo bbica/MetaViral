@@ -10,8 +10,9 @@ library(tidyr)
 library(gtools)
 library(shinyFiles)
 library(data.table)
-
-#Before deploying run: (this will enable the detection of the Bioconductor package)
+library(shinyWidgets)
+library(janitor)
+#Before deploying run the following: (enables the detection of the Bioconductor package)
 #library(BiocManager)
 #options(repos = BiocManager::repositories())
 
@@ -136,6 +137,48 @@ cleaning<-function(viral_data, output_from="vcontact2", remove_flags=c("F", "T",
     warning("output_from must be vcontact2 or DRAMv")
   }
 }#end of function
+
+host_domain <- function(vcontact_df, reduce_names=FALSE) {
+  '%>%' <- tidyr::`%>%`
+  vcontact_df2 <- tidyr::separate(vcontact_df, col=Genome, into=c("Genome", "Genome2"), sep="[[:punct:]]", extra = "merge")
+  vcontact_df2$Genome2 <- NULL
+  hostdb<-readRDS("./www/hostdb.rds")
+
+  domain<-sapply(seq_along(vcontact_df$Genome), function(x){
+
+    if(janitor::make_clean_names(vcontact_df2$Genome[x]) %in% hostdb$Genus2==TRUE){
+      temp<-which(hostdb$Genus2==janitor::make_clean_names(vcontact_df2$Genome[x])[1])
+      temp2<-hostdb$Domain[temp]
+
+    }else if(janitor::make_clean_names(vcontact_df2$Genome[x]) %in% hostdb$Genus==TRUE){
+      temp<-which(hostdb$Genus==janitor::make_clean_names(vcontact_df2$Genome[x])[1])
+      temp2<-hostdb$Domain[temp]
+
+    }else if(janitor::make_clean_names(vcontact_df2$Genome[x]) %in% hostdb$virus_name==TRUE){
+      temp<-which(hostdb$virus_name==janitor::make_clean_names(vcontact_df2$Genome[x])[1])
+      temp2<-hostdb$Domain[temp]
+
+    }else{
+      temp2<-NA
+    }
+
+    return(temp2)
+  })#end of sapply
+
+  if(reduce_names==TRUE){
+    vcontact_df3<-cbind(domain, vcontact_df2)
+    vcontact_df3$Genome <- paste0(vcontact_df3$Genome, "-",  vcontact_df3$domain)
+
+  }else{
+    vcontact_df3<-cbind(domain, vcontact_df)
+    vcontact_df3$Genome <- paste0(vcontact_df3$Genome, "-",  vcontact_df3$domain)
+  }
+
+  return(vcontact_df3)
+
+}#end of function host_domain
+
+
 
 
 abundance_vc<-function(viral_vc, taxa="Family",output_type="matrix", abuntype="relative"){
@@ -423,7 +466,7 @@ db_exploring<-function(viral_annotations, database="all"){
 }#end of function
 
 
-# UI #
+########################################################################################################################### UI #
 ui <- shinyUI(
   fluidPage(
     tags$head(
@@ -479,11 +522,11 @@ ui <- shinyUI(
         shinyjs::hidden(shiny::numericInput(inputId = "aux_score", label = "Max aux score", 4, min = 1, max = 5),
         verbatimTextOutput("value")),
         shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
-        shinyjs::hidden(shiny::actionButton(inputId = "dataset_clean", label = "Process data", icon = icon("clean", lib = "glyphicon"))),
+        shinyjs::hidden(shiny::actionButton(inputId = "dataset_clean", label = "Process data")),
         br(),
-        br(),
+        shinyjs::hidden(shiny::actionButton(inputId = "host", label = "Add host Domain (optional)")),
+        shinyjs::hidden(shinyWidgets::prettySwitch(inputId = "reduce_names", label = "reduce host names?", slim = TRUE)),
         hr(style = "border-color: black"),
-        br(),
         shinyjs::hidden(shiny::radioButtons(inputId = "dataset_matrix", label = "Abundance type to generate", choices = c("absolute", "relative"))),
         shinyjs::hidden(shiny::selectInput(inputId = "taxa_selection", label = "Taxon", choices = c("Order", "Family", "Genus", "Genome"))),
         shinyjs::hidden(shiny::actionButton(inputId = "dataset_abundance", label = "Abundance matrix", icon = icon("thumbnails-small", lib = "glyphicon"))),
@@ -518,12 +561,13 @@ ui <- shinyUI(
   )#end of fluidPage
 )#end of shintUI
 
-# server #
+############################################################################################################### server #
 server <- function(input, output, session) {
   #Initiate variables
   typefile<-reactiveValues(df=NULL)
   data<-reactiveValues(df=NULL)
   data_clean<-reactiveValues(df=NULL)
+  hostdb<-reactiveValues(df=NULL)
   abundance<-reactiveValues(df=NULL)
   printer<-reactiveValues(df=NULL)
   #Initiate placeholders
@@ -554,9 +598,12 @@ server <- function(input, output, session) {
       shinyjs::show("aux_score")
       shinyjs::show("amg_flags")
       shinyjs::hide("dataset_matrix")
+      shinyjs::hide("host")
+      shinyjs::hide("reduce_names")
       shinyjs::hide("taxa_selection")
       shinyjs::hide("dataset_abundance")
       shinyjs::hide("bio_stats")
+
     }
     x<<-input$dataset
     wd<<-file.path(normalizePath("~"), paste(unlist(x$path[-1]), collapse = .Platform$file.sep))
@@ -594,6 +641,8 @@ server <- function(input, output, session) {
     shinyjs::show("aux_score")
     shinyjs::show("amg_flags")
     shinyjs::hide("dataset_matrix")
+    shinyjs::hide("host")
+    shinyjs::hide("reduce_names")
     shinyjs::hide("taxa_selection")
     shinyjs::hide("dataset_abundance")
     shinyjs::hide("bio_stats")
@@ -644,6 +693,8 @@ server <- function(input, output, session) {
           shinyjs::show("dataset_matrix")
           shinyjs::show("taxa_selection")
           shinyjs::show("dataset_abundance")
+          shinyjs::show("host")
+          shinyjs::show("reduce_names")
         }else{
           shinyjs::show("database")
           shinyjs::show("database_explore")
@@ -658,7 +709,20 @@ server <- function(input, output, session) {
     )#end of tryCatch (error display)
   })#end observeEvent clean
 
+  observeEvent(input$host, {
+      data_clean$df<-host_domain(vcontact_df = data_clean$df, reduce_names=input$reduce_names)
+      printer$df<-data_clean$df
+      showNotification("Done")
+
+  })#end observeEvent host
+
+
+
+
+
   observeEvent(input$dataset_abundance, {
+    shinyjs::hide("host")
+    shinyjs::hide("reduce_names")
     showNotification("Wait patiently...")
     abundance$df<-abundance_vc(viral_vc = data_clean$df,
                                           taxa = input$taxa_selection,
