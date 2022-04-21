@@ -5,9 +5,9 @@ account: bbica
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4177046
-bundleId: 5522548
+bundleId: 5542561
 url: https://bbica.shinyapps.io/MetaViralApp/
-when: 1643505078.89883
-lastSyncTime: 1643505078.89883
+when: 1643978972.94371
+lastSyncTime: 1643978972.94371
 asMultiple: FALSE
 asStatic: FALSE

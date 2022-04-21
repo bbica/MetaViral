@@ -2,8 +2,8 @@
 #' @description This is a function that suppresses log info
 #' #'
 #' @param flnm name of the file
-#' @param col_names2 TRUE if first row is the header, the default
-#' @importFrom readr read_tsv
+#' @param col_names2 TRUE if first row is the header, default
+#' @importFrom data.table fread
 #' @import dplyr
 #' @examples
 #' \dontrun{
@@ -18,15 +18,15 @@ list_tsv <- function(flnm, col_names2=TRUE) {
 
   if (col_names2==TRUE){
     return_namefile <-
-      readr::read_tsv(flnm, col_names = TRUE) %>%
+      data.table::fread(flnm, header = TRUE, sep="\t") %>%
       dplyr::mutate(filename = flnm)
     return(return_namefile)
 
   }else{
     return_namefile <-
-    readr::read_tsv(flnm, col_names = FALSE) %>%
-    dplyr::mutate(filename = flnm)
-  return(return_namefile)
+      data.table::fread(flnm, header = FALSE, sep="\t") %>%
+      dplyr::mutate(filename = flnm)
+    return(return_namefile)
 
   }
 }

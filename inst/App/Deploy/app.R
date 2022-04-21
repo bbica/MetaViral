@@ -13,8 +13,8 @@ library(data.table)
 library(shinyWidgets)
 library(janitor)
 #Before deploying run the following: (enables the detection of the Bioconductor package)
-#library(BiocManager)
-#options(repos = BiocManager::repositories())
+# library(BiocManager)
+# options(repos = BiocManager::repositories())
 
 list_csv <- function(flnm) {
   '%>%' <- tidyr::`%>%`
@@ -167,11 +167,11 @@ host_domain <- function(vcontact_df, reduce_names=FALSE) {
 
   if(reduce_names==TRUE){
     vcontact_df3<-cbind(domain, vcontact_df2)
-    vcontact_df3$Genome <- paste0(vcontact_df3$Genome, "-",  vcontact_df3$domain)
+    vcontact_df3$Genome <- paste0(vcontact_df3$domain, "-", vcontact_df3$Genome)
 
   }else{
     vcontact_df3<-cbind(domain, vcontact_df)
-    vcontact_df3$Genome <- paste0(vcontact_df3$Genome, "-",  vcontact_df3$domain)
+    vcontact_df3$Genome <- paste0(vcontact_df3$domain, "-", vcontact_df3$Genome)
   }
 
   return(vcontact_df3)
@@ -465,8 +465,7 @@ db_exploring<-function(viral_annotations, database="all"){
   }
 }#end of function
 
-
-########################################################################################################################### UI #
+####################################################################################################### UI #
 ui <- shinyUI(
   fluidPage(
     tags$head(
@@ -524,8 +523,9 @@ ui <- shinyUI(
         shinyjs::hidden(shiny::selectInput(inputId = "amg_flags", label = "Flags to remove", choices = c("V", "M", "A", "P", "E", "K", "T", "F", "B"), multiple = TRUE)),
         shinyjs::hidden(shiny::actionButton(inputId = "dataset_clean", label = "Process data")),
         br(),
-        shinyjs::hidden(shiny::actionButton(inputId = "host", label = "Add host Domain (optional)")),
+        br(),
         shinyjs::hidden(shinyWidgets::prettySwitch(inputId = "reduce_names", label = "reduce host names?", slim = TRUE)),
+        shinyjs::hidden(shiny::actionButton(inputId = "host", label = "Add host Domain (optional)")),
         hr(style = "border-color: black"),
         shinyjs::hidden(shiny::radioButtons(inputId = "dataset_matrix", label = "Abundance type to generate", choices = c("absolute", "relative"))),
         shinyjs::hidden(shiny::selectInput(inputId = "taxa_selection", label = "Taxon", choices = c("Order", "Family", "Genus", "Genome"))),
@@ -535,10 +535,8 @@ ui <- shinyUI(
         #shiny::selectizeInput(inputId = "database", label = "Database exploration",
         #choices=c("kegg", "pfam", "vog", "viraldb", "peptidase", "all"), multiple=T),
         shinyjs::hidden(shiny::selectInput(inputId = "database", label = "Database exploration",
-                                           choices=c("kegg", "pfam", "vog", "refseq", "cazy", "peptidase", "all"))),
+                          choices=c("kegg", "pfam", "vog", "refseq", "cazy", "peptidase", "all"))),
         shinyjs::hidden(shiny::actionButton(inputId = "database_explore", label = "Explore"))
-
-
 
       ), #end of sidebarPanel
       shiny::mainPanel(fluidRow(
@@ -561,7 +559,7 @@ ui <- shinyUI(
   )#end of fluidPage
 )#end of shintUI
 
-############################################################################################################### server #
+################################################################################################ SERVER ###
 server <- function(input, output, session) {
   #Initiate variables
   typefile<-reactiveValues(df=NULL)
@@ -716,10 +714,6 @@ server <- function(input, output, session) {
 
   })#end observeEvent host
 
-
-
-
-
   observeEvent(input$dataset_abundance, {
     shinyjs::hide("host")
     shinyjs::hide("reduce_names")
@@ -738,7 +732,10 @@ server <- function(input, output, session) {
 
     if (input$dataset_matrix=="absolute"){
       shinyjs::show("bio_stats")
-    }
+    }else{
+      shinyjs::hide("bio_stats")
+      }
+
     printer$df<- abundance$df
 
   })#end of observeEvent abundance

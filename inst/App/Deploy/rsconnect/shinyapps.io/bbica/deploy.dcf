@@ -1,11 +1,13 @@
-name: deploy
-title:
+name: Deploy
+title: Deploy
 username:
 account: bbica
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 4173916
-bundleId: 4631415
-url: https://bbica.shinyapps.io/deploy/
-when: 1621819094.10896
-lastSyncTime: 1621819094.10896
+appId: 5549454
+bundleId: 5527382
+url: https://bbica.shinyapps.io/Deploy/
+when: 1643651712.43502
+lastSyncTime: 1643651712.43502
+asMultiple: FALSE
+asStatic: FALSE

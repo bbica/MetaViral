@@ -1,6 +1,10 @@
 {
-    "path" : "C:/Users/bbica/Desktop/MetaViral",
+    "path" : "C:/Users/bbica/Desktop/MetaViral/R",
     "sortOrder" : [
+        {
+            "ascending" : false,
+            "columnIndex" : 1
+        },
         {
             "ascending" : true,
             "columnIndex" : 2

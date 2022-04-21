@@ -33,16 +33,23 @@ import_files <- function(path, filetype="tsv", col_names=TRUE){
     }
 
   }else if (filetype=="csv"){
-    export_files <-
-      list.files(pattern = paste0("*.", filetype),
-                 full.names = T) %>%
-      purrr::map_df(~list_csv(.))
+    if (col_names==TRUE){
+      export_files <-
+        list.files(pattern = paste0("*.", filetype),
+                   full.names = T) %>%
+        purrr::map_df(~list_csv(.,col_names3=TRUE))
+
+    }else{
+      export_files <-
+        list.files(pattern = paste0("*.", filetype),
+                   full.names = T) %>%
+        purrr::map_df(~list_csv(.,col_names3=FALSE))
+    }
 
   }else{
     warning("Filetype must be 'csv' or 'tsv'")
-    }
+  }
 
   return(export_files)
 }
-
 #end

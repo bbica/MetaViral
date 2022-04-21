@@ -9,7 +9,7 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
-Imports: dplyr, purrr, readr, tidyr, rlang, vegan, KEGGREST, janitor
+Imports: dplyr, purrr, tidyr, rlang, vegan, KEGGREST, janitor, data.table
 LazyData: true
 Collate: 
     'abundance_standard.R'

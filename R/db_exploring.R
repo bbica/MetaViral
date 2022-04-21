@@ -4,6 +4,7 @@
 #' @param viral_annotations dataframe from DRAMv
 #' @param database database to further analize
 #' @import dplyr
+#' @import tidyr
 #' @import KEGGREST
 #' @examples
 #' \dontrun{
@@ -30,11 +31,14 @@ db_exploring<-function(viral_annotations, database="all"){
     return(vog)
 
   }else if (database=="kegg"){
+
     kegg<-dplyr::select(viral_annotations, Biome, kegg_hit, kegg_id, fasta)
+    kegg<-tidyr::separate_rows(kegg, kegg_id , sep = ",", convert = FALSE)
+    kegg<-unique(kegg[, c( "Biome", "kegg_hit", "kegg_id", "fasta")])
     kegg<-na.omit(kegg)
     kegg<-kegg %>%
       dplyr::add_count(kegg_hit,name="kegg_counts", Biome)
-
+    kegg<-unique(kegg[, c("Biome","kegg_hit","kegg_id","kegg_counts","fasta")])
     kegg$Pathway<-NA
     kegg$Pathway2<-NA
     kegg$Pathway3<-NA
