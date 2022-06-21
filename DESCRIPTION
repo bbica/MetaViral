@@ -21,4 +21,7 @@ Collate:
     'import_files.R'
     'list_csv.R'
     'list_tsv.R'
+    'biofunctionfind.R'
+    'matchrows.R'
+    'viral_lifestyle.R'
 RoxygenNote: 7.1.2
